@@ -40,6 +40,9 @@ class NlBendProcessor {
 
         void setModalMatrices();
 
+        // Input and output dimensions
+        int Nins{1}, Nouts{1};
+
 
     public:
         NlBendProcessor(float sampleRate, int Nmodes = 1);
@@ -50,7 +53,7 @@ class NlBendProcessor {
 
         void computeV();
 
-        std::tuple<T, T, T> process(T input, T posex = 0.9, T poslistL = 0.3, T poslistR = 0.3);
+        void process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out);
 
         // Higher level modal parameters
         Eigen::Vector<T, -1> Amps, Omega, Decays;
@@ -60,6 +63,9 @@ class NlBendProcessor {
         T lambda0{0};
         // Discretization parameters
         int getNmodes() {return Nmodes;};
+
+        int getNins(){return Nins;}
+        int getNouts(){return Nouts;}
 };
 
 #endif

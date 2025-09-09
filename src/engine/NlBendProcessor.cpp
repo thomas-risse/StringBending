@@ -31,9 +31,21 @@ void NlBendProcessor<T>::ReinitDsp(float sampleRate){
   g = qnow;
 
   // Reinit system matrices
-  M = Eigen::Vector<T, 1>::Ones(Nmodes);
+  Eigen::Vector<T, -1> Mcopy, Kcopy, Rcopy;
+  Mcopy = M;
+  Kcopy = K;
+  Rcopy = R;
+
+  M = Eigen::Vector<T, -1>::Ones(Nmodes);
   K = M;
   R = M;
+
+  if (Mcopy.size() != 0){
+    int maxsize = std::max(Mcopy.size(), M.size());
+    M.head(maxsize) = Mcopy.head(maxsize);
+    K.head(maxsize) = Kcopy.head(maxsize);
+    R.head(maxsize) = Rcopy.head(maxsize);
+  }
 };
 
 template <class T>
@@ -67,11 +79,11 @@ void NlBendProcessor<T>::computeV(){
 };
 
 template <class T>
-std::tuple<T, T, T> NlBendProcessor<T>::process(T input, T posex, T poslistL, T poslistR){
+void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out){
   // Linear part
   RHS = (- K * dt * dt + 2 * M)* qnow 
     - (M - R * dt / 2) * qlast
-    + Gp * input * dt;
+    + Gp * input(0) * dt;
   LHS = M + R * dt / 2;
 
   qnext = (RHS.array() / LHS.array()).matrix();
@@ -81,8 +93,7 @@ std::tuple<T, T, T> NlBendProcessor<T>::process(T input, T posex, T poslistL, T 
   qlast = qnow;
   qnow = qnext;
 
-
-  return {qnow(0), 0, 0};
+  out(0) = qnow(0);
 };
 
 template class NlBendProcessor<double>;

@@ -23,15 +23,20 @@ int main(int argc, char const *argv[])
 
   proc.setLinearParameters(Amps, Omegas, Decays);
 
-  Eigen::VectorXd out = Eigen::VectorXd::Zero(static_cast<int>(sr * simDuration));
+  Eigen::VectorXd out0 = Eigen::VectorXd::Zero(static_cast<int>(sr * simDuration));
 
   auto start = high_resolution_clock::now();
+
+  Eigen::VectorXd in = Eigen::VectorXd::Ones(1);
+  Eigen::VectorXd out = Eigen::VectorXd::Ones(1);
   for (int i = 0; i < sr*simDuration; i++) {
     if (i==0){
-      out(i) = std::get<0>(proc.process(1));
+      proc.process(in, out);
     } else {
-      out(i) = std::get<0>(proc.process(0));
+      in(0) = 0;
+      proc.process(in, out);
     }
+    out0(i) = out(0);
   }
   auto stop = high_resolution_clock::now();
   float rtRatio = (duration_cast<microseconds>(stop - start)).count() * 1e-6/ simDuration;
