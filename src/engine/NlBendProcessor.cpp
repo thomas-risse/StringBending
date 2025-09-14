@@ -6,6 +6,9 @@ template <class T>
 NlBendProcessor<T>::NlBendProcessor(float sampleRate, int Nmodes){
   
   this->Nmodes = Nmodes;
+  this->Nins = Nmodes;
+  this->Nouts = Nmodes;
+
 
   ReinitDsp(sampleRate);
 };
@@ -52,7 +55,7 @@ template <class T>
 void NlBendProcessor<T>::setModalMatrices(){
   M = Amps;
   K = Amps * Omega * Omega;
-  R = 2 * 6.9 * Decays.cwiseInverse();
+  R = 2 * 6.9 * Decays.cwiseInverse() * Amps;
 };
 
 template <class T>
@@ -62,6 +65,34 @@ void NlBendProcessor<T>::setLinearParameters(Eigen::Vector<T, -1> Amps, Eigen::V
   }
   this->Amps = Amps;
   this->Omega = Omega;
+  this->Decays = Decays;
+  setModalMatrices();
+};
+
+template <class T>
+void NlBendProcessor<T>::setAmps(Eigen::Vector<T, -1> Amps){
+  if (Amps.size() != Nmodes) {
+    throw std::invalid_argument("Input vectors must have the same size as Nmodes");
+  }
+  this->Amps = Amps;
+  setModalMatrices();
+};
+
+
+template <class T>
+void NlBendProcessor<T>::setFreqs(Eigen::Vector<T, -1> Freqs){
+  if (Freqs.size() != Nmodes) {
+    throw std::invalid_argument("Input vectors must have the same size as Nmodes");
+  }
+  this->Omega = Freqs * 2 * M_PI;
+  setModalMatrices();
+};
+
+template <class T>
+void NlBendProcessor<T>::setDecays(Eigen::Vector<T, -1> Decays){
+  if (Decays.size() != Nmodes) {
+    throw std::invalid_argument("Input vectors must have the same size as Nmodes");
+  }
   this->Decays = Decays;
   setModalMatrices();
 };
@@ -83,7 +114,7 @@ void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, E
   // Linear part
   RHS = (- K * dt * dt + 2 * M)* qnow 
     - (M - R * dt / 2) * qlast
-    + Gp * input(0) * dt;
+    + input * dt;
   LHS = M + R * dt / 2;
 
   qnext = (RHS.array() / LHS.array()).matrix();
@@ -93,7 +124,15 @@ void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, E
   qlast = qnow;
   qnow = qnext;
 
-  out(0) = qnow(0);
+  out = qnow;
+};
+
+template <class T>
+void NlBendProcessor<T>::setControlPosition(T pos){
+  pos = std::clamp(pos, T(0.01), T(0.99));
+  for (int i=0; i<Nmodes; i++){
+    Gp(i) = std::sin(M_PI * (2 * i + 1) * pos);
+  }
 };
 
 template class NlBendProcessor<double>;

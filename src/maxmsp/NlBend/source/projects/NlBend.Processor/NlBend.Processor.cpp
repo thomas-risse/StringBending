@@ -21,6 +21,8 @@ private:
 
   Eigen::Vector<ftype, -1> inVec, outVec;
 
+  int Nmodes{1};
+
   float sr;
 
 public:
@@ -39,13 +41,17 @@ public:
   std::shared_ptr<NlBendProcessor<ftype>> getProc(){return proc;}
 
   Processor(const atoms &args = {}) {
-    proc = std::make_shared<NlBendProcessor<double>>(44100);
-    inVec = outVec = Eigen::Vector<ftype, -1>::Zero(1);
+    if (args.size() > 0){
+		  Nmodes = static_cast<int>(args[0]);
+    }
+    proc = std::make_shared<NlBendProcessor<double>>(44100, Nmodes);
+    inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins());
+    outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts());
     try{
       proc->setLinearParameters(
-        Eigen::Vector<ftype, -1>::Constant(1, 1),
-        Eigen::Vector<ftype, -1>::Constant(1, 600),
-        Eigen::Vector<ftype, -1>::Constant(1, 0.1)
+        Eigen::Vector<ftype, -1>::Constant(Nmodes, 1),
+        Eigen::Vector<ftype, -1>::Constant(Nmodes, 600),
+        Eigen::Vector<ftype, -1>::Constant(Nmodes, 0.1)
       );
     } catch (const std::invalid_argument& ex) {
       cout << ex << endl;
@@ -72,6 +78,76 @@ public:
       for (auto j = 0; j < output.channel_count(); ++j) {
         out[j][i] = outVec[j];
       }
+    }
+  };
+
+  message<> setAmps { this, "Amps",
+    MIN_FUNCTION {
+      // Check size
+      if (args.size() != Nmodes){
+        cout << "Wrong vector size" << endl;
+        return{};
+      } else {
+        // Convert atoms to Eigen vector
+        Eigen::Vector<ftype, -1> input_vec;
+        input_vec = Eigen::Vector<ftype, -1>::Zero(args.size());
+        int i = 0;
+        for (auto& a : args) {
+            input_vec(i) = a;
+            i+=1;
+        }
+        proc->setAmps(input_vec);
+        return {};
+      }
+    }
+  };
+
+  message<> setFreqs { this, "Freqs",
+    MIN_FUNCTION {
+      // Check size
+      if (args.size() != Nmodes){
+        cout << "Wrong vector size" << endl;
+        return{};
+      } else {
+        // Convert atoms to Eigen vector
+        Eigen::Vector<ftype, -1> input_vec;
+        input_vec = Eigen::Vector<ftype, -1>::Zero(args.size());
+        int i = 0;
+        for (auto& a : args) {
+            input_vec(i) = a;
+            i+=1;
+        }
+        proc->setFreqs(input_vec);
+        return {};
+      }
+    }
+  };
+
+  message<> setDecays { this, "Decays",
+    MIN_FUNCTION {
+      // Check size
+      if (args.size() != Nmodes){
+        cout << "Wrong vector size" << endl;
+        return{};
+      } else {
+        // Convert atoms to Eigen vector
+        Eigen::Vector<ftype, -1> input_vec;
+        input_vec = Eigen::Vector<ftype, -1>::Zero(args.size());
+        int i = 0;
+        for (auto& a : args) {
+            input_vec(i) = a;
+            i+=1;
+        }
+        proc->setDecays(input_vec);
+        return {};
+      }
+    }
+  };
+
+  message<> setExPos { this, "PosEx",
+    MIN_FUNCTION {
+        proc->setControlPosition(args[0]);
+        return {};
     }
   };
 

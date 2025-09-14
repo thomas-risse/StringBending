@@ -58,6 +58,12 @@ class NlBendProcessor {
         // Higher level modal parameters
         Eigen::Vector<T, -1> Amps, Omega, Decays;
         void setLinearParameters (Eigen::Vector<T, -1> Amps, Eigen::Vector<T, -1> Omega, Eigen::Vector<T, -1> Decays);
+        void setAmps (Eigen::Vector<T, -1> Amps);
+        void setFreqs (Eigen::Vector<T, -1> Freqs);
+        void setDecays (Eigen::Vector<T, -1> Decays);
+
+        // Control signals
+        void setControlPosition(T pos);
         
         // Control SAV parameter
         T lambda0{0};
