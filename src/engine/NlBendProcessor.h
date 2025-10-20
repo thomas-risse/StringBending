@@ -34,6 +34,7 @@ class NlBendProcessor {
 
         // Nonlinear function evaluation
         Eigen::Vector<T, -1> g;
+        T V;
 
         // Input vector
         Eigen::Vector<T, -1> Gp;
