@@ -7,6 +7,10 @@
 
 #include <Eigen/Dense>
 
+enum NLMODE{
+    SUM
+}
+
 template <class T>
 class NlBendProcessor {
     private:
@@ -17,6 +21,8 @@ class NlBendProcessor {
         Eigen::Vector<T, -1> M, K, R;
 
         // Nonlinear part: function parametrization: How can we do that?
+        NLMODE{SUM};
+
 
         // Time-scheme parameters
         float sr;
@@ -33,7 +39,7 @@ class NlBendProcessor {
         Eigen::Vector<T, -1> qspat;
 
         // Nonlinear function evaluation
-        Eigen::Vector<T, -1> g;
+        Eigen::Vector<T, -1> g, dqV;
         T V;
 
         // Input vector

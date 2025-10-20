@@ -99,14 +99,19 @@ void NlBendProcessor<T>::setDecays(Eigen::Vector<T, -1> Decays){
 
 template <class T>
 void NlBendProcessor<T>::computeVAndVprime(){
-
-
+  switch (NLMODE){
+    case SUM:
+      V = pow(qnow.sum(), 4) / 4;
+      dqV = pow(qnow.sum(), 3);
+  };
 };
 
 template <class T>
 void NlBendProcessor<T>::computeV(){
-
-
+  switch (NLMODE){
+    case SUM:
+      V = pow(qnow.sum(), 4) / 4;
+  };
 };
 
 template <class T>
