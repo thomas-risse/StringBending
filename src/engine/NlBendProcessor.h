@@ -7,9 +7,9 @@
 
 #include <Eigen/Dense>
 
-enum NLMODE{
+enum NLMODE {
     SUM
-}
+};
 
 template <class T>
 class NlBendProcessor {
@@ -21,7 +21,7 @@ class NlBendProcessor {
         Eigen::Vector<T, -1> M, K, R;
 
         // Nonlinear part: function parametrization: How can we do that?
-        NLMODE{SUM};
+        NLMODE nlMode = SUM;
 
 
         // Time-scheme parameters
@@ -41,9 +41,6 @@ class NlBendProcessor {
         // Nonlinear function evaluation
         Eigen::Vector<T, -1> g, dqV;
         T V;
-
-        // Input vector
-        Eigen::Vector<T, -1> Gp;
 
         void setModalMatrices();
 
@@ -69,9 +66,10 @@ class NlBendProcessor {
         void setFreqs (Eigen::Vector<T, -1> Freqs);
         void setDecays (Eigen::Vector<T, -1> Decays);
 
-        // Control signals
-        void setControlPosition(T pos);
-        
+        T getOmega(int i){
+            return this->K(i);
+        }
+
         // Control SAV parameter
         T lambda0{0};
         // Discretization parameters

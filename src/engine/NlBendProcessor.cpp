@@ -1,7 +1,6 @@
 #include "NlBendProcessor.h"
 #include "iostream"
 
-
 template <class T>
 NlBendProcessor<T>::NlBendProcessor(float sampleRate, int Nmodes){
   
@@ -19,7 +18,7 @@ void NlBendProcessor<T>::ReinitDsp(float sampleRate){
   dt = 1 / (float(sr));
 
   // Reinit state
-  qnow = Eigen::Vector<T, 1>::Zero(Nmodes);
+  qnow = Eigen::Vector<T, -1>::Zero(Nmodes);
   qnext = qnow;
   qlast = qnow;
   qspat = qnow;
@@ -27,8 +26,6 @@ void NlBendProcessor<T>::ReinitDsp(float sampleRate){
   r = 0;
 
   RHS = LHS = qnow;
-  Gp = qnow;
-  Gp(0) = 1;
 
   // Reinit g vector
   g = qnow;
@@ -54,8 +51,8 @@ void NlBendProcessor<T>::ReinitDsp(float sampleRate){
 template <class T>
 void NlBendProcessor<T>::setModalMatrices(){
   M = Amps;
-  K = Amps * Omega * Omega;
-  R = 2 * 6.9 * Decays.cwiseInverse() * Amps;
+  K = Amps.cwiseProduct(Omega).cwiseProduct(Omega);
+  R = 2 * 6.9 * Decays.cwiseInverse().cwiseProduct(Amps);
 };
 
 template <class T>
@@ -99,16 +96,16 @@ void NlBendProcessor<T>::setDecays(Eigen::Vector<T, -1> Decays){
 
 template <class T>
 void NlBendProcessor<T>::computeVAndVprime(){
-  switch (NLMODE){
+  switch (nlMode){
     case SUM:
       V = pow(qnow.sum(), 4) / 4;
-      dqV = pow(qnow.sum(), 3);
+      dqV = pow(qnow.sum(), 3) * Eigen::VectorX<T>::Ones(Nmodes);
   };
 };
 
 template <class T>
 void NlBendProcessor<T>::computeV(){
-  switch (NLMODE){
+  switch (nlMode){
     case SUM:
       V = pow(qnow.sum(), 4) / 4;
   };
@@ -117,8 +114,8 @@ void NlBendProcessor<T>::computeV(){
 template <class T>
 void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out){
   // Linear part
-  RHS = (- K * dt * dt + 2 * M)* qnow 
-    - (M - R * dt / 2) * qlast
+  RHS = (- K * dt * dt + 2 * M).cwiseProduct(qnow) 
+    - (M - R * dt / 2).cwiseProduct(qlast)
     + input * dt;
   LHS = M + R * dt / 2;
 
@@ -130,14 +127,6 @@ void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, E
   qnow = qnext;
 
   out = qnow;
-};
-
-template <class T>
-void NlBendProcessor<T>::setControlPosition(T pos){
-  pos = std::clamp(pos, T(0.01), T(0.99));
-  for (int i=0; i<Nmodes; i++){
-    Gp(i) = std::sin(M_PI * (2 * i + 1) * pos);
-  }
 };
 
 template class NlBendProcessor<double>;

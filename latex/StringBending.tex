@@ -91,8 +91,8 @@
   In prevision of the user interface, it is useful to rewrite the system matrices from the modal amplitudes $\mat A$, characteristic pulsations $\boldsymbol{\Omega}$ and decay times $\mat T$ (themselves related to the quality factors as $\mat T = \frac{2 \mat Q}{6.9 \boldsymbol{\Omega}}$), yielding:
   \begin{align}
     \mat M& = \mat A, \\
-    \mat K& = \mat A \boldsymbol{\Omega},\\
-    \mat R& = \frac{2 * 6.9}{\mat T}.
+    \mat K& = \mat A \boldsymbol{\Omega}^2,\\
+    \mat R& = \frac{2 * 6.9}{\mat T} \mat A.
   \end{align}
 
   The definition of both the nonlinear function $E_{\mathrm{nl}}$ and input matrix $\mat G_p$ are left for step 3.

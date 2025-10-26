@@ -15,7 +15,7 @@ long ph_multichanneloutputs(c74::max::t_object *x, long index, long count);
 long ph_inputchanged(c74::max::t_object *x, long index, long count);
 
 // Main class definition
-class Processor : public object<Processor>, public vector_operator<> {
+class Processor : public object<Processor>, public mc_operator<> {
 private:
   std::shared_ptr<NlBendProcessor<ftype>> proc;
 
@@ -118,6 +118,11 @@ public:
             i+=1;
         }
         proc->setFreqs(input_vec);
+        i = 0;
+        for (auto& a : args) {
+          cout << proc->getOmega(i) << endl;
+          i+=1;
+        }
         return {};
       }
     }
@@ -144,25 +149,16 @@ public:
     }
   };
 
-  message<> setExPos { this, "PosEx",
-    MIN_FUNCTION {
-        proc->setControlPosition(args[0]);
-        return {};
+  message<> maxclass_setup{this, "maxclass_setup",
+    MIN_FUNCTION{c74::max::t_class *c = args[0];
+      c74::max::class_addmethod(c, (c74::max::method)ph_multichanneloutputs,
+                                "multichanneloutputs", c74::max::A_CANT, 0);
+      c74::max::class_addmethod(c, (c74::max::method)ph_inputchanged, "inputchanged",
+                                c74::max::A_CANT, 0);
+      return {};
     }
   };
-
-message<> maxclass_setup{this, "maxclass_setup",
-                         MIN_FUNCTION{c74::max::t_class *c = args[0];
-c74::max::class_addmethod(c, (c74::max::method)ph_multichanneloutputs,
-                          "multichanneloutputs", c74::max::A_CANT, 0);
-c74::max::class_addmethod(c, (c74::max::method)ph_inputchanged, "inputchanged",
-                          c74::max::A_CANT, 0);
-return {};
-}
-}
-;
-}
-; // Processor
+}; // Processor
 
 MIN_EXTERNAL(Processor);
 
@@ -189,5 +185,5 @@ long ph_inputchanged(c74::max::t_object *x, long index, long count) {
   } else {
     ob->m_min_object.compatibleInput = false;
   }
-  return ob->m_min_object.compatibleInput;
+  return 1 ;
 }

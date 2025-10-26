@@ -22,7 +22,6 @@ include_directories(
 
 set( SOURCE_FILES
 	${PROJECT_NAME}.cpp
-	${AUDIO_PROCESSORS_DIR}/NlBendProcessor.cpp
 )
 
 
