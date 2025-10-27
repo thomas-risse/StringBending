@@ -5,7 +5,6 @@
 
 using namespace c74::min;
 
-using ftype = double;
 // Function declarations
 // Multichannel handling
 long ph_multichanneloutputs(c74::max::t_object *x, long index, long count);
@@ -16,9 +15,10 @@ class InputMap : public object<InputMap>, public mc_operator<> {
 private:
   int Nins{1}, Nouts{1};
 
-  float sr;
+  float sr, dt;
 
-  float posEx{0.5};
+  float posExSmoothed{0.5}, alpha{1};
+  float fcSmoothing{100.0};
 
 public:
   MIN_DESCRIPTION{"Many to many input mapping for NlBend processor excitation."};
@@ -29,9 +29,9 @@ public:
   inlet<> m_inlet{this, "(multichannelsignal) input", "multichannelsignal"};
   outlet<> m_outlet{this, "(multichannelsignal) output", "multichannelsignal"};
 
-  bool compatibleInput{false}, compatibleOutput{false};
-
-  std::size_t inConnected{0};
+  attribute<number, threadsafe::no, limit::clamp> posEx { this, "posEx", 0.5,
+	  range { 0.0, 1.0 }
+  };
 
   InputMap(const atoms &args = {}) {
     if (args.size() > 0){
@@ -49,6 +49,9 @@ public:
 
   message<> dspsetup { this, "dspsetup",
     MIN_FUNCTION {
+      sr = args[0];
+      dt = 1/sr;
+      alpha = 2 * M_PI * dt * fcSmoothing / (2 * M_PI * dt * fcSmoothing + 1);
       return {};
     }
   };
@@ -58,16 +61,10 @@ public:
     auto in = input.samples();
 
     for (auto i = 0; i < output.frame_count(); ++i) {
+      posExSmoothed = alpha * posEx + (1-alpha) * posExSmoothed;
       for (auto j = 0; j < output.channel_count(); ++j) {
-        out[j][i] = sin(M_PI * float(j+1) * posEx) * in[0][i] ;
+        out[j][i] = sin(M_PI * float(j+1) * posExSmoothed) * in[0][i] ;
       }
-    }
-  };
-
-  message<> setExPos { this, "PosEx",
-    MIN_FUNCTION {
-        posEx = args[0];
-        return {};
     }
   };
 
@@ -95,6 +92,5 @@ long ph_multichanneloutputs(c74::max::t_object *x, long index, long count) {
 long ph_inputchanged(c74::max::t_object *x, long index, long count) {
   minwrap<InputMap> *ob = (minwrap<InputMap> *)(x);
   ob->m_min_object.setNins(count);
-  ob->m_min_object.compatibleInput = true;
-  return ob->m_min_object.compatibleInput;
+  return 1;
 }
