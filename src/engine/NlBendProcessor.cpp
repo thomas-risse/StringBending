@@ -58,7 +58,7 @@ void NlBendProcessor<T>::setModalMatrices(){
 template <class T>
 void NlBendProcessor<T>::setLinearParameters(Eigen::Vector<T, -1> Amps, Eigen::Vector<T, -1> Omega, Eigen::Vector<T, -1> Decays){
   if (Amps.size() != Nmodes || Omega.size() != Nmodes || Decays.size() != Nmodes) {
-    throw std::invalid_argument("Input vectors must have the same size as Nmodes");
+    throw std::invalid_argument("Input vector must have the same size as Nmodes");
   }
   this->Amps = Amps;
   // Omega is clamped to ensure stability of the scheme
@@ -70,7 +70,7 @@ void NlBendProcessor<T>::setLinearParameters(Eigen::Vector<T, -1> Amps, Eigen::V
 template <class T>
 void NlBendProcessor<T>::setAmps(Eigen::Vector<T, -1> Amps){
   if (Amps.size() != Nmodes) {
-    throw std::invalid_argument("Input vectors must have the same size as Nmodes");
+    throw std::invalid_argument("Input vector must have the same size as Nmodes");
   }
   this->Amps = Amps;
   setModalMatrices();
@@ -80,7 +80,7 @@ void NlBendProcessor<T>::setAmps(Eigen::Vector<T, -1> Amps){
 template <class T>
 void NlBendProcessor<T>::setFreqs(Eigen::Vector<T, -1> Freqs){
   if (Freqs.size() != Nmodes) {
-    throw std::invalid_argument("Input vectors must have the same size as Nmodes");
+    throw std::invalid_argument("Input vector must have the same size as Nmodes");
   }
   this->Omega = ClipEigen(2 * M_PI * Freqs, T(0), T(2 * sr));
   setModalMatrices();
@@ -89,7 +89,7 @@ void NlBendProcessor<T>::setFreqs(Eigen::Vector<T, -1> Freqs){
 template <class T>
 void NlBendProcessor<T>::setDecays(Eigen::Vector<T, -1> Decays){
   if (Decays.size() != Nmodes) {
-    throw std::invalid_argument("Input vectors must have the same size as Nmodes");
+    throw std::invalid_argument("Input vector must have the same size as Nmodes");
   }
   this->Decays = Decays;
   setModalMatrices();
