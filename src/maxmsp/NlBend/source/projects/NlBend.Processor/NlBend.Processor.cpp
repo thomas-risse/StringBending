@@ -118,11 +118,6 @@ public:
             i+=1;
         }
         proc->setFreqs(input_vec);
-        i = 0;
-        for (auto& a : args) {
-          cout << proc->getOmega(i) << endl;
-          i+=1;
-        }
         return {};
       }
     }

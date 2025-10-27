@@ -7,6 +7,8 @@
 
 #include <Eigen/Dense>
 
+#include "EigenUtility.h"
+
 enum NLMODE {
     SUM
 };
