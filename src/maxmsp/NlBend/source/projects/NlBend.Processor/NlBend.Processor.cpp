@@ -69,15 +69,18 @@ public:
   void operator()(audio_bundle input, audio_bundle output) {
     auto out = output.samples();
     auto in = input.samples();
-
-    for (auto i = 0; i < output.frame_count(); ++i) {
-      for (auto j = 0; j < input.channel_count(); ++j) {
-        inVec[j] = in[j][i];
+    if (compatibleInput) {
+      for (auto i = 0; i < output.frame_count(); ++i) {
+        for (auto j = 0; j < input.channel_count(); ++j) {
+          inVec[j] = in[j][i];
+        }
+        proc->process(inVec, outVec);
+        for (auto j = 0; j < output.channel_count(); ++j) {
+          out[j][i] = outVec[j];
+        }
       }
-      proc->process(inVec, outVec);
-      for (auto j = 0; j < output.channel_count(); ++j) {
-        out[j][i] = outVec[j];
-      }
+    } else {
+      cerr << "Wrong input signal size" << endl;
     }
   };
 
