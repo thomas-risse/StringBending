@@ -4,8 +4,8 @@ PACKAGE_NAME="NlBend"
 rm -rf "./$PACKAGE_NAME/build/" || true
 mkdir -p "./$PACKAGE_NAME/build"
 cd "./$PACKAGE_NAME/build"
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build . --config "Debug"
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config "Release"
 
 mkdir -p "$MAX_PACKAGE_PATH/$PACKAGE_NAME/externals"
 
