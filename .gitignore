@@ -40,3 +40,5 @@ externals/
 *.pdf
 *.wav
 .vscode
+
+compile_commands.json

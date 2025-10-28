@@ -14,6 +14,7 @@ void frequenciesInharmonic(
 ){
   int i=1;
   for (auto &el: out ){
+    // TODO: chage formula to a working one for negative values of beta
     el = f0 * i * (1 + (i-1) * beta);
     i++;
   }

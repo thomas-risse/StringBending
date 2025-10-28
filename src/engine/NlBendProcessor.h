@@ -10,12 +10,15 @@
 #include "EigenUtility.h"
 
 enum NLMODE {
+    MODEWISE,
     SUM
 };
 
 template <class T>
 class NlBendProcessor {
     private:
+        // Numerical epsilon value
+        constexpr static T NUM_EPS{1e-12};
         // Number of modes
         int Nmodes{1};
 
@@ -23,12 +26,14 @@ class NlBendProcessor {
         Eigen::Vector<T, -1> M, K, R;
 
         // Nonlinear part: function parametrization: How can we do that?
-        NLMODE nlMode = SUM;
+        NLMODE nlMode = MODEWISE;
 
 
         // Time-scheme parameters
         float sr;
         T dt;
+        bool controlTerm{true};
+        T lambda0{0};
 
         // System state (modal coordinates)
         Eigen::Vector<T, -1> qlast, qnow, qnext;
@@ -44,11 +49,13 @@ class NlBendProcessor {
         Eigen::Vector<T, -1> g, dqV;
         T V;
 
-        void setModalMatrices();
+        // Drift variable
+        T epsilon;
 
         // Input and output dimensions
         int Nins{1}, Nouts{1};
-
+        
+        void setModalMatrices();
 
     public:
         NlBendProcessor(float sampleRate, int Nmodes = 1);
@@ -72,8 +79,6 @@ class NlBendProcessor {
             return this->K(i);
         }
 
-        // Control SAV parameter
-        T lambda0{0};
         // Discretization parameters
         int getNmodes() {return Nmodes;};
 
