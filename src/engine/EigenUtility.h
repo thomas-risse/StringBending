@@ -11,4 +11,4 @@ auto ClipEigen(const Eigen::MatrixBase<Derived>& array,
   return array.cwiseMin(max).cwiseMax(min);
 }
 
-#endif // EIGEN_UTILITY_HÒ
+#endif // EIGEN_UTILITY_H
