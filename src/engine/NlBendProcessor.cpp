@@ -113,7 +113,7 @@ template <class T>
 void NlBendProcessor<T>::computeV(){
   switch (nlMode){
     case MODEWISE:
-      V = ((qnow+qlast)/2).array().pow(4).sum() / 4;
+      V = 1e5* ((qnow+qlast)/2).array().pow(4).sum() / 4;
     case SUM:
       V = pow(qnow.sum(), 4) / 4;
   };
@@ -123,12 +123,12 @@ template <class T>
 void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out){
   // Nonlinear part
   computeVAndVprime();
-  g = dqV / (2 * sqrt(2*V) + NUM_EPS);
+  g = dqV / (sqrt(2*V) + NUM_EPS);
 
   if (controlTerm){
     computeV();
     epsilon = r - sqrt(2*V);
-    g -= lambda0 * epsilon * dt * ((qnow-qlast).array()>0).select(Eigen::Vector<T, -1>::Ones(Nmodes-1), -Eigen::Vector<T, -1>::Ones(Nmodes-1)) / ((qnow-qlast).template lpNorm<1>() + NUM_EPS);
+    g -= lambda0 * epsilon * dt * ((qnow-qlast).array()>0).select(Eigen::Vector<T, -1>::Ones(Nmodes), -Eigen::Vector<T, -1>::Ones(Nmodes)) / ((qnow-qlast).template lpNorm<1>() + NUM_EPS);
   }
 
   // Linear part

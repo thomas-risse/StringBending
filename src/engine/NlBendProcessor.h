@@ -25,7 +25,8 @@ class NlBendProcessor {
         // Linear part: system "matrices" (diagonal)
         Eigen::Vector<T, -1> M, K, R;
 
-        // Nonlinear part: function parametrization: How can we do that?
+        // Nonlinear part: function parametrization: 
+        // How can we do that?
         NLMODE nlMode = MODEWISE;
 
 
