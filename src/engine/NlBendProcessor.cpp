@@ -101,8 +101,9 @@ template <class T>
 void NlBendProcessor<T>::computeVAndVprime(){
   switch (nlMode){
     case MODEWISE:
-      V = qnow.array().pow(4).sum() / 4;
-      dqV = qnow.array().pow(3).matrix();
+      V = (K.array() * qnow.array().pow(4)).sum() / 4;
+      dqV = (K.array() * qnow.array().pow(3)).matrix();
+      break;
     case SUM:
       V = pow(qnow.sum(), 4) / 4;
       dqV = pow(qnow.sum(), 3) * Eigen::VectorX<T>::Ones(Nmodes);
@@ -113,7 +114,8 @@ template <class T>
 void NlBendProcessor<T>::computeV(){
   switch (nlMode){
     case MODEWISE:
-      V = 1e5* ((qnow+qlast)/2).array().pow(4).sum() / 4;
+      V = (K.array() * ((qnow+qlast)/2).array().pow(4)).sum() / 4;
+      break;
     case SUM:
       V = pow(qnow.sum(), 4) / 4;
   };
@@ -150,7 +152,7 @@ void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, E
   qlast = qnow;
   qnow = qnext;
 
-  out = qnow;
+    out = qnow;
 };
 
 template class NlBendProcessor<double>;
