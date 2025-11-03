@@ -42,3 +42,5 @@ externals/
 .vscode
 
 compile_commands.json
+
+xcode/
