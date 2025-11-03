@@ -23,23 +23,6 @@ public:
     }
   }
 
-  // Number of modes
-  attribute<int, threadsafe::no, limit::clamp> Nmodes { this, "Nmodes", 10,
-	  range { 1, 1000 },
-    setter { MIN_FUNCTION {
-      if (args.size()>0){
-        int N = args[0];
-        // Resize vectors and initialize with default values
-        Ans.resize(N, 1.0);
-        Fns.resize(N);
-        frequenciesInharmonic(Fns, f0, beta);
-        T60s.resize(N);
-        T60sQuadraticLoss(T60s, Fns, float(f0), float(T60_0), float(b1));
-      }
-      return args;
-	  }}
-  };
-
   // A set of high level parameters
   attribute<number, threadsafe::no, limit::clamp> f0 { this, "f0", 440,
 	  range { 1e-3, 10000 }
@@ -55,6 +38,23 @@ public:
 
   attribute<number, threadsafe::no, limit::clamp> b1 { this, "b1", 1e-3,
 	  range { 0.0, 1.0 }
+  };
+
+  // Number of modes
+  attribute<number, threadsafe::no, limit::clamp> Nmodes { this, "Nmodes", 10,
+	  range { 1, 1000 },
+    setter { MIN_FUNCTION {
+      if (args.size()>0){
+        int N = args[0];
+        // Resize vectors and initialize with default values
+        Ans.resize(N, 1.0);
+        Fns.resize(N);
+        frequenciesInharmonic(Fns, f0, beta);
+        T60s.resize(N);
+        T60sQuadraticLoss(T60s, Fns, float(f0), float(T60_0), float(b1));
+      }
+      return args;
+	  }}
   };
 
   message<> bang { this, "bang", "Outputs modal coefficients.",
