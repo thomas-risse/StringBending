@@ -11,4 +11,12 @@ auto ClipEigen(const Eigen::MatrixBase<Derived>& array,
   return array.cwiseMin(max).cwiseMax(min);
 }
 
+template <typename Derived>
+auto SafeSetEigen(Eigen::MatrixBase<Derived>& array,
+          const Eigen::MatrixBase<Derived>& array2)
+{
+  int minDim = std::min(array.size(), array2.size());
+  array.head(minDim) = array2.head(minDim);
+}
+
 #endif // EIGEN_UTILITY_H

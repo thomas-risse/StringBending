@@ -27,7 +27,7 @@ class NlBendProcessor {
 
         // Nonlinear part: function parametrization: 
         // How can we do that?
-        NLMODE nlMode = MODEWISE;
+        NLMODE nlMode = SUM;
 
 
         // Time-scheme parameters
@@ -67,7 +67,7 @@ class NlBendProcessor {
 
         void computeV();
 
-        void process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out);
+        void process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out, T &epsilonOut);
 
         // Higher level modal parameters
         Eigen::Vector<T, -1> Amps, Omega, Decays;

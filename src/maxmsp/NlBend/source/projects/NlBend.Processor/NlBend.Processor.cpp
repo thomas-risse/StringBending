@@ -42,13 +42,22 @@ public:
     if (args.size() > 0){
 		  Nmodes = args[0];
     }
+    proc = std::make_shared<NlBendProcessor<double>>(44100, 10);
   };
 
   // Number of modes
   attribute<int, threadsafe::no, limit::clamp> Nmodes { this, "Nmodes", 10,
 	  range { 1, 1000 },
     setter { MIN_FUNCTION {
-      proc = std::make_shared<NlBendProcessor<double>>(44100, Nmodes);
+      return args;
+	  }}
+  };
+
+  message<> dspsetup { this, "dspsetup",
+    MIN_FUNCTION {
+      sr = args[0];
+      proc->ReinitDsp(sr);
+      proc = std::make_shared<NlBendProcessor<double>>(sr, Nmodes);
       inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins());
       outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts());
       try{
@@ -60,14 +69,6 @@ public:
       } catch (const std::invalid_argument& ex) {
         cout << ex << endl;
       };
-      return args;
-	  }}
-  };
-
-  message<> dspsetup { this, "dspsetup",
-    MIN_FUNCTION {
-      sr = args[0];
-      proc->ReinitDsp(sr);
       return {};
     }
   };
@@ -75,12 +76,13 @@ public:
   void operator()(audio_bundle input, audio_bundle output) {
     auto out = output.samples();
     auto in = input.samples();
+    double epsilon = 0;
     if (compatibleInput) {
       for (auto i = 0; i < output.frame_count(); ++i) {
         for (auto j = 0; j < input.channel_count(); ++j) {
           inVec[j] = in[j][i];
         }
-        proc->process(inVec, outVec);
+        proc->process(inVec, outVec, epsilon);
         for (auto j = 0; j < output.channel_count(); ++j) {
           out[j][i] = outVec[j];
         }

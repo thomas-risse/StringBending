@@ -71,29 +71,20 @@ void NlBendProcessor<T>::setLinearParameters(Eigen::Vector<T, -1> Amps, Eigen::V
 
 template <class T>
 void NlBendProcessor<T>::setAmps(Eigen::Vector<T, -1> Amps){
-  if (Amps.size() != Nmodes) {
-    throw std::invalid_argument("Input vector must have the same size as Nmodes");
-  }
-  this->Amps = Amps;
+  SafeSetEigen(this->Amps, Amps);
   setModalMatrices();
 };
 
 
 template <class T>
 void NlBendProcessor<T>::setFreqs(Eigen::Vector<T, -1> Freqs){
-  if (Freqs.size() != Nmodes) {
-    throw std::invalid_argument("Input vector must have the same size as Nmodes");
-  }
-  this->Omega = ClipEigen(2 * M_PI * Freqs, T(0), T(2 * sr));
+  SafeSetEigen(this->Omega, ClipEigen(2 * M_PI * Freqs, T(0), T(2 * sr)).eval());
   setModalMatrices();
 };
 
 template <class T>
 void NlBendProcessor<T>::setDecays(Eigen::Vector<T, -1> Decays){
-  if (Decays.size() != Nmodes) {
-    throw std::invalid_argument("Input vector must have the same size as Nmodes");
-  }
-  this->Decays = Decays;
+  SafeSetEigen(this->Decays, Decays);
   setModalMatrices();
 };
 
@@ -105,8 +96,11 @@ void NlBendProcessor<T>::computeVAndVprime(){
       dqV = (K.array() * qnow.array().pow(3)).matrix();
       break;
     case SUM:
-      V = pow(qnow.sum(), 4) / 4;
-      dqV = pow(qnow.sum(), 3) * Eigen::VectorX<T>::Ones(Nmodes);
+      V = qnow.dot(qnow) * qnow.dot((K.array() * qnow.array()).matrix()) / 4;
+      dqV = 0.5 * (
+        qnow * (qnow.dot((K.array() * qnow.array()).matrix()))
+        + (K.array() * qnow.array() * (qnow.dot(qnow))).matrix()
+      );
   };
 };
 
@@ -117,12 +111,12 @@ void NlBendProcessor<T>::computeV(){
       V = (K.array() * ((qnow+qlast)/2).array().pow(4)).sum() / 4;
       break;
     case SUM:
-      V = pow(qnow.sum(), 4) / 4;
+      V = ((qnow+qlast)/2).dot(((qnow+qlast)/2)) * ((qnow+qlast)/2).dot((K.array() * ((qnow+qlast)/2).array()).matrix()) / 4;
   };
 };
 
 template <class T>
-void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out){
+void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out, T &epsilonOut){
   // Nonlinear part
   computeVAndVprime();
   g = dqV / (sqrt(2*V) + NUM_EPS);
@@ -152,7 +146,8 @@ void NlBendProcessor<T>::process(Eigen::Ref<const Eigen::Vector<T, -1>> input, E
   qlast = qnow;
   qnow = qnext;
 
-    out = qnow;
+  out = qnow;
+  epsilonOut = epsilon;
 };
 
 template class NlBendProcessor<double>;
