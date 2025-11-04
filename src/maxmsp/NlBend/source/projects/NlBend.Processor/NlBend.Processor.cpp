@@ -21,8 +21,6 @@ private:
 
   Eigen::Vector<ftype, -1> inVec, outVec;
 
-  int Nmodes{1};
-
   float sr;
 
 public:
@@ -42,20 +40,28 @@ public:
 
   Processor(const atoms &args = {}) {
     if (args.size() > 0){
-		  Nmodes = static_cast<int>(args[0]);
+		  Nmodes = args[0];
     }
-    proc = std::make_shared<NlBendProcessor<double>>(44100, Nmodes);
-    inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins());
-    outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts());
-    try{
-      proc->setLinearParameters(
-        Eigen::Vector<ftype, -1>::Constant(Nmodes, 1),
-        Eigen::Vector<ftype, -1>::Constant(Nmodes, 600),
-        Eigen::Vector<ftype, -1>::Constant(Nmodes, 0.1)
-      );
-    } catch (const std::invalid_argument& ex) {
-      cout << ex << endl;
-    };
+  };
+
+  // Number of modes
+  attribute<int, threadsafe::no, limit::clamp> Nmodes { this, "Nmodes", 10,
+	  range { 1, 1000 },
+    setter { MIN_FUNCTION {
+      proc = std::make_shared<NlBendProcessor<double>>(44100, Nmodes);
+      inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins());
+      outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts());
+      try{
+        proc->setLinearParameters(
+          Eigen::Vector<ftype, -1>::Constant(Nmodes, 1),
+          Eigen::Vector<ftype, -1>::Constant(Nmodes, 600),
+          Eigen::Vector<ftype, -1>::Constant(Nmodes, 0.1)
+        );
+      } catch (const std::invalid_argument& ex) {
+        cout << ex << endl;
+      };
+      return args;
+	  }}
   };
 
   message<> dspsetup { this, "dspsetup",

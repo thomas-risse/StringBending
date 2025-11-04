@@ -13,7 +13,7 @@ long ph_inputchanged(c74::max::t_object *x, long index, long count);
 // Main class definition
 class OutputMap : public object<OutputMap>, public mc_operator<> {
 private:
-  int Nins{1}, Nouts{1};
+  int Nins{1};
 
   float sr, dt;
 
@@ -35,11 +35,13 @@ public:
 
   OutputMap(const atoms &args = {}) {
     if (args.size() > 0){
-		  Nins = args[0];
+      Nouts = args[0];
     }
-    if (args.size() > 1){
-      Nouts = args[1];
-    }
+  };
+
+  // Number of modes
+  attribute<number, threadsafe::no, limit::clamp> Nouts { this, "Nouts", 1,
+	  range { 1, 1000 }
   };
 
   int getNouts(){
@@ -108,8 +110,8 @@ MIN_EXTERNAL(OutputMap);
 long ph_multichanneloutputs(c74::max::t_object *x, long index, long count) {
   minwrap<OutputMap> *ob = (minwrap<OutputMap> *)(x);
   // Return the object's configured number of output channels (independent of input)
-  if (ob->m_min_object.getNouts() < 1) ob->m_min_object.setNouts(1);
-  return ob->m_min_object.getNouts();
+  if (ob->m_min_object.Nouts < 1) ob->m_min_object.Nouts = 1;
+  return ob->m_min_object.Nouts;
   
 }
 

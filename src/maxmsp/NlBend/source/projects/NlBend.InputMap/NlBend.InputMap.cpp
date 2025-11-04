@@ -39,6 +39,17 @@ public:
     }
   };
 
+  // Number of modes
+  attribute<number, threadsafe::no, limit::clamp> Nmodes { this, "Nmodes", 10,
+	  range { 1, 1000 },
+    setter { MIN_FUNCTION {
+      if (args.size()>0){
+        Nouts = args[0];  
+      }
+      return args;
+	  }}
+  };
+
   int getNouts(){
     return Nouts;
   }
