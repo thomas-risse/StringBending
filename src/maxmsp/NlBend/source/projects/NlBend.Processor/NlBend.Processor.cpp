@@ -23,6 +23,8 @@ private:
 
   float sr;
 
+  bool procInitialized{false};
+
 public:
   MIN_DESCRIPTION{"Nonlinear model bending audio processor"};
   MIN_TAGS{"multichannel, audio, physical modelling, nonlinear"};
@@ -31,6 +33,7 @@ public:
 
   inlet<> m_inlet{this, "(multichannelsignal) input", "multichannelsignal"};
   outlet<> m_outlet{this, "(multichannelsignal) output", "multichannelsignal"};
+  outlet<> outlet_epsilon{this, "(float) epsilon", "float"};
 
   bool compatibleInput{false}, compatibleOutput{false};
 
@@ -42,13 +45,21 @@ public:
     if (args.size() > 0){
 		  Nmodes = args[0];
     }
-    proc = std::make_shared<NlBendProcessor<double>>(44100, 10);
+    proc = std::make_shared<NlBendProcessor<double>>(sr, 10);
+    procInitialized = true;
   };
 
   // Number of modes
   attribute<int, threadsafe::no, limit::clamp> Nmodes { this, "Nmodes", 10,
-	  range { 1, 1000 },
+	  range { 1, 1000 }
+  };
+
+  attribute<number, threadsafe::no, limit::clamp> lambda0 { this, "lambda0", 1,
+	  range { 1, 10000 },
     setter { MIN_FUNCTION {
+      if (procInitialized){
+        proc->setLambda0(args[0]);
+      }
       return args;
 	  }}
   };
@@ -83,10 +94,12 @@ public:
           inVec[j] = in[j][i];
         }
         proc->process(inVec, outVec, epsilon);
-        for (auto j = 0; j < output.channel_count(); ++j) {
+        for (auto j = 0; j < static_cast<int>(outVec.size()) && j < output.channel_count(); ++j) {
           out[j][i] = outVec[j];
         }
       }
+      // Send last value of epsilon
+      outlet_epsilon.send(epsilon);
     } else {
       cerr << "Wrong input signal size" << endl;
     }
@@ -172,15 +185,10 @@ MIN_EXTERNAL(Processor);
 // Multichannel handling
 long ph_multichanneloutputs(c74::max::t_object *x, long index, long count) {
   minwrap<Processor> *ob = (minwrap<Processor> *)(x);
-  std::size_t nout =
-      ob->m_min_object.getProc()->getNouts();
-  if (nout >= 1) {
-    ob->m_min_object.compatibleOutput = true;
-    return nout;
-  } else {
-    ob->m_min_object.compatibleOutput = false;
-    return 1;
-  }
+  // Return number of processor outputs plus one additional signal outlet for epsilon
+  std::size_t nout = ob->m_min_object.getProc()->getNouts();
+  ob->m_min_object.compatibleOutput = true;
+  return static_cast<long>(nout);
 }
 
 long ph_inputchanged(c74::max::t_object *x, long index, long count) {
