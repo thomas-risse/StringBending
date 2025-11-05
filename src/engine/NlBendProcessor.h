@@ -1,3 +1,4 @@
+
 #ifndef NL_BEND_PROCESSOR_H
 #define NL_BEND_PROCESSOR_H
 
@@ -10,6 +11,7 @@
 #include "EigenUtility.h"
 
 enum NLMODE {
+    LINEAR,
     MODEWISE,
     SUM
 };
@@ -24,10 +26,12 @@ class NlBendProcessor {
 
         // Linear part: system "matrices" (diagonal)
         Eigen::Vector<T, -1> M, K, R;
+        // Higer level modal parameters
+        Eigen::Vector<T, -1> Amps, Omega, Decays;
 
         // Nonlinear part: function parametrization: 
         // How can we do that?
-        NLMODE nlMode = SUM;
+        NLMODE nlMode = LINEAR;
 
 
         // Time-scheme parameters
@@ -51,7 +55,7 @@ class NlBendProcessor {
         T V;
 
         // Drift variable
-        T epsilon;
+        T epsilon{0}, maxV{0};
 
         // Input and output dimensions
         int Nins{1}, Nouts{1};
@@ -70,7 +74,6 @@ class NlBendProcessor {
         void process(Eigen::Ref<const Eigen::Vector<T, -1>> input, Eigen::Ref<Eigen::Vector<T, -1>> out, T &epsilonOut);
 
         // Higher level modal parameters
-        Eigen::Vector<T, -1> Amps, Omega, Decays;
         void setLinearParameters (Eigen::Vector<T, -1> Amps, Eigen::Vector<T, -1> Omega, Eigen::Vector<T, -1> Decays);
         void setAmps (Eigen::Vector<T, -1> Amps);
         void setFreqs (Eigen::Vector<T, -1> Freqs);
@@ -79,7 +82,8 @@ class NlBendProcessor {
         T getOmega(int i){
             return this->K(i);
         }
-
+        
+        void setLambda0(T lambda0){this->lambda0 = std::clamp(lambda0, T(0), T(10000));};
         // Discretization parameters
         int getNmodes() {return Nmodes;};
 
