@@ -44,3 +44,4 @@ externals/
 compile_commands.json
 
 xcode/
+latex/
