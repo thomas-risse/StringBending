@@ -12,6 +12,7 @@
 - [ ] Convergence curves in multiple cases.
 - [ ] Perceptive metrics? Maybe at some point organize a simple listening test.
 - [ ] A python implementation in probably needed for all that...
+- [ ] Compensate for warping on linear part. (sr / pi -> sr / 2 at stability condition).
 
 
 
