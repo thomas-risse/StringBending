@@ -90,8 +90,8 @@ class NlBendProcessor {
         // Discretization parameters
         int getNmodes() {return Nmodes;};
 
-        int getNins(){return Nins;}
-        int getNouts(){return Nouts;}
+        static constexpr int getNins(int Nmodes){return Nmodes;}
+        static constexpr int getNouts(int Nmodes) {return Nmodes;}
 };
 
 #endif

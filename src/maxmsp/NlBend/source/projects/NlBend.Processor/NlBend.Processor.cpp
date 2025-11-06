@@ -82,16 +82,16 @@ public:
       // Reset linear parameters
       try{
         proc->setLinearParameters(
-          Eigen::Vector<ftype, -1>::Constant(Nmodes, 1),
-          Eigen::Vector<ftype, -1>::Constant(Nmodes, 600),
-          Eigen::Vector<ftype, -1>::Constant(Nmodes, 0.1)
+          Eigen::Vector<ftype, -1>::Constant(proc->getNmodes(), 1),
+          Eigen::Vector<ftype, -1>::Constant(proc->getNmodes(), 600),
+          Eigen::Vector<ftype, -1>::Constant(proc->getNmodes(), 0.1)
         );
       } catch (const std::invalid_argument& ex) {
         cout << ex << endl;
       };
       // Buffers init
-      inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins());
-      outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts());
+      inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins(proc->getNmodes()));
+      outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts(proc->getNmodes()));
       return {};
     }
   };
@@ -197,8 +197,7 @@ MIN_EXTERNAL(Processor);
 // Multichannel handling
 long ph_multichanneloutputs(c74::max::t_object *x, long index, long count) {
   minwrap<Processor> *ob = (minwrap<Processor> *)(x);
-  // Return number of processor outputs plus one additional signal outlet for epsilon
-  std::size_t nout = ob->m_min_object.getProc()->getNouts();
+  std::size_t nout = ob->m_min_object.getProc()->getNouts(ob->m_min_object.Nmodes);
   ob->m_min_object.compatibleOutput = true;
   return static_cast<long>(nout);
 }
@@ -206,7 +205,7 @@ long ph_multichanneloutputs(c74::max::t_object *x, long index, long count) {
 long ph_inputchanged(c74::max::t_object *x, long index, long count) {
   minwrap<Processor> *ob = (minwrap<Processor> *)(x);
   ob->m_min_object.inConnected = count;
-  if (count == ob->m_min_object.getProc()->getNins()) {
+  if (count == ob->m_min_object.getProc()->getNins(ob->m_min_object.Nmodes)) {
     ob->m_min_object.compatibleInput = true;
   } else {
     ob->m_min_object.compatibleInput = false;

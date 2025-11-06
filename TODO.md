@@ -2,11 +2,11 @@
 
 ## 1-Real-time implementation
 
-- [ ] Fix initialization of audio processor.
+- [x] Fix initialization of audio processor.
 - [ ] Introduce a preset system in the Max patch to remember good sounding configurations. 
 - [ ] Find a way to share some info between MAX/MSP objects (Nmodes).
 - [ ] Decide wether to keep the architecture as is (multiple objects, each capable of audio operations), or instead use multiple objects for symbolic representation and centralize audio computations in one processor (could be useful for bidirectional interactions: e.g. bowing). Or find a way to keep both.
-- [ ] Set the nonlinearity type as an object member.
+- [x] Set the nonlinearity type as an object member.
 
 ## 2-Numerical method
 
