@@ -7,6 +7,7 @@
 #include <tuple>
 
 #include <Eigen/Dense>
+#include <string_view>
 
 #include "EigenUtility.h"
 
@@ -78,6 +79,8 @@ class NlBendProcessor {
         void setAmps (Eigen::Vector<T, -1> Amps);
         void setFreqs (Eigen::Vector<T, -1> Freqs);
         void setDecays (Eigen::Vector<T, -1> Decays);
+    
+        void setNlMode (NLMODE mode) {this->nlMode = mode;};
 
         T getOmega(int i){
             return this->K(i);

@@ -3,6 +3,7 @@
 #include <atomic>
 #include <dlfcn.h>
 #include <memory>
+#include <string_view>
 
 #include "NlBendProcessor.h"
 
@@ -13,6 +14,9 @@ using ftype = double;
 // Multichannel handling
 long ph_multichanneloutputs(c74::max::t_object *x, long index, long count);
 long ph_inputchanged(c74::max::t_object *x, long index, long count);
+
+// NlMode casting
+constexpr NLMODE getNlModeFromString(std::string_view sv);
 
 // Main class definition
 class Processor : public object<Processor>, public mc_operator<> {
@@ -54,6 +58,9 @@ public:
 	  range { 1, 1000 }
   };
 
+  // Nonlinear mode
+  attribute<symbol> NlMode { this, "NlMode", "LINEAR", range {"LINEAR", "MODEWISE", "SUM"}};
+
   attribute<number, threadsafe::no, limit::clamp> lambda0 { this, "lambda0", 1,
 	  range { 1, 10000 },
     setter { MIN_FUNCTION {
@@ -67,10 +74,12 @@ public:
   message<> dspsetup { this, "dspsetup",
     MIN_FUNCTION {
       sr = args[0];
+      // Processor initialization
       proc->ReinitDsp(sr);
       proc = std::make_shared<NlBendProcessor<double>>(sr, Nmodes);
-      inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins());
-      outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts());
+      // Set Nl Mode
+      proc->setNlMode(getNlModeFromString(std::string_view(NlMode.get())));
+      // Reset linear parameters
       try{
         proc->setLinearParameters(
           Eigen::Vector<ftype, -1>::Constant(Nmodes, 1),
@@ -80,6 +89,9 @@ public:
       } catch (const std::invalid_argument& ex) {
         cout << ex << endl;
       };
+      // Buffers init
+      inVec = Eigen::Vector<ftype, -1>::Zero(proc->getNins());
+      outVec = Eigen::Vector<ftype, -1>::Zero(proc->getNouts());
       return {};
     }
   };
@@ -200,4 +212,11 @@ long ph_inputchanged(c74::max::t_object *x, long index, long count) {
     ob->m_min_object.compatibleInput = false;
   }
   return 1 ;
+}
+
+constexpr NLMODE getNlModeFromString(std::string_view sv){
+    if (sv == "MODEWISE") return MODEWISE;
+    if (sv == "SUM") return SUM;
+    // Default
+    return LINEAR; 
 }
